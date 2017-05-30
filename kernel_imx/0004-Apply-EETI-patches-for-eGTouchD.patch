@@ -1,0 +1,85 @@
+From 396898de8c0b81f38da041efd5e0841b5f01717f Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Wed, 10 May 2017 12:29:59 -0700
+Subject: [PATCH 04/12] Apply EETI patches for eGTouchD
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ drivers/input/evdev.c    | 10 ++++++++++
+ drivers/input/joydev.c   |  5 +++++
+ drivers/input/mousedev.c | 13 +++++++++++++
+ 3 files changed, 28 insertions(+)
+
+diff --git a/drivers/input/evdev.c b/drivers/input/evdev.c
+index 92e4388..e6a2ed9 100644
+--- a/drivers/input/evdev.c
++++ b/drivers/input/evdev.c
+@@ -1260,6 +1260,15 @@ static void evdev_disconnect(struct input_handle *handle)
+ 	put_device(&evdev->dev);
+ }
+ 
++static bool evdev_match(struct input_handler *handler, struct input_dev *dev)
++{
++	/* Avoid EETI USB touchscreens */
++#define VID_EETI 0x0EEF
++	if ((BUS_USB == dev->id.bustype) && (VID_EETI == dev->id.vendor))
++		return false;
++	return true;
++}
++
+ static const struct input_device_id evdev_ids[] = {
+ 	{ .driver_info = 1 },	/* Matches all devices */
+ 	{ },			/* Terminating zero entry */
+@@ -1270,6 +1279,7 @@ MODULE_DEVICE_TABLE(input, evdev_ids);
+ static struct input_handler evdev_handler = {
+ 	.event		= evdev_event,
+ 	.events		= evdev_events,
++	.match 		= evdev_match,  /* Added by EETI*/
+ 	.connect	= evdev_connect,
+ 	.disconnect	= evdev_disconnect,
+ 	.legacy_minors	= true,
+diff --git a/drivers/input/joydev.c b/drivers/input/joydev.c
+index f362883..4926fe4 100644
+--- a/drivers/input/joydev.c
++++ b/drivers/input/joydev.c
+@@ -758,6 +758,11 @@ static bool joydev_match(struct input_handler *handler, struct input_dev *dev)
+ 	if (test_bit(EV_KEY, dev->evbit) && test_bit(BTN_DIGI, dev->keybit))
+ 		return false;
+ 
++/* Avoid EETI virtual devices */
++#define VID_EETI 0x0EEF
++	if (( BUS_VIRTUAL == dev->id.bustype) && (VID_EETI == dev->id.vendor))
++		return false;
++
+ 	return true;
+ }
+ 
+diff --git a/drivers/input/mousedev.c b/drivers/input/mousedev.c
+index b604564..75f27c9 100644
+--- a/drivers/input/mousedev.c
++++ b/drivers/input/mousedev.c
+@@ -1053,8 +1053,21 @@ static const struct input_device_id mousedev_ids[] = {
+ 
+ MODULE_DEVICE_TABLE(input, mousedev_ids);
+ 
++static bool mousedev_match(struct input_handler *handler, struct input_dev *dev)
++{
++	/* Avoid EETI USB touchscreens */
++#define VID_EETI 0x0EEF
++	if ((BUS_USB == dev->id.bustype) && (VID_EETI == dev->id.vendor))
++		return false;
++	/* Avoid EETI virtual devices */
++	if ((BUS_VIRTUAL == dev->id.bustype) && (VID_EETI == dev->id.vendor))
++		return false;
++	return true;
++}
++
+ static struct input_handler mousedev_handler = {
+ 	.event		= mousedev_event,
++	.match 		= mousedev_match,  /* Added by EETI */
+ 	.connect	= mousedev_connect,
+ 	.disconnect	= mousedev_disconnect,
+ 	.legacy_minors	= true,
+-- 
+2.7.4
+

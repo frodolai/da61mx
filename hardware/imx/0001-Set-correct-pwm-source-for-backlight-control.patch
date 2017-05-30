@@ -1,0 +1,101 @@
+From 7e66a1b04b8bf0ff99f58dd47f0d33c3ba200307 Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Thu, 18 May 2017 12:52:15 -0700
+Subject: [PATCH] Set correct pwm source for backlight control
+
+- 10": hw.backlight.dev0 "pwm-backlight0.0"
+- 13.3": hw.backlight.dev1 "pwm-backlight1.1"
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ lights/fsl_lights.c | 52 +++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 51 insertions(+), 1 deletion(-)
+ mode change 100644 => 100755 lights/fsl_lights.c
+
+diff --git a/lights/fsl_lights.c b/lights/fsl_lights.c
+old mode 100644
+new mode 100755
+index dde1e8f..16942af
+--- a/lights/fsl_lights.c
++++ b/lights/fsl_lights.c
+@@ -88,7 +88,7 @@ static int set_light_backlight(struct light_device_t* dev,
+     if (brightness > max_brightness) {
+         brightness  = max_brightness;
+     }
+-    
++
+     ALOGV("set_light, max_brightness=%d, target brightness=%d",
+         max_brightness, brightness);
+ 
+@@ -112,11 +112,51 @@ static int light_close_backlight(struct hw_device_t *dev)
+     return 0;
+ }
+ 
++static int is_lvds_13_attached(void)
++{
++	char fb0_mode[100], power_path[256];
++	char value[PROPERTY_VALUE_MAX];
++    FILE *file;
++    int ret;
++
++	file = fopen("/sys/class/graphics/fb0/mode", "r");
++    if (!file) {
++        ALOGE("can not open mode of fb0\n");
++        return -1;
++    }
++    fread(fb0_mode, 1, 20, file);
++    fclose(file);
++    ret = strncmp(fb0_mode, "U:1920x1080p-60", strlen("U:1920x1080p-60"));
++    ALOGI("mode of fb0 is %s, ret = %d\n", fb0_mode, ret);
++
++	if (ret == 0)
++        property_get("hw.backlight.dev0", value, DEF_BACKLIGHT_DEV);
++    else
++        property_get("hw.backlight.dev1", value, DEF_BACKLIGHT_DEV);
++    strcpy(power_path, DEF_BACKLIGHT_PATH);
++    strcat(power_path, value);
++    strcat(power_path, "/bl_power");
++	file = fopen(power_path, "w");
++    if (!file) {
++        ALOGE("can not open power path\n");
++        return -1;
++    }
++    fprintf(file, "%d", 1);
++    fclose(file);
++
++	if (ret == 0)
++		return 1;
++	else
++		return 0;
++}
++
+ /*****************************************************************************/
+ static int lights_device_open(const struct hw_module_t* module,
+                               const char* name, struct hw_device_t** device)
+ {
+     int status = -EINVAL;
++    bool use_lvds_13 = false;
++    char product[20];
+     ALOGV("lights_device_open\n");
+     if (!strcmp(name, LIGHT_ID_BACKLIGHT)) {
+         struct light_device_t *dev;
+@@ -137,6 +177,16 @@ static int lights_device_open(const struct hw_module_t* module,
+ 
+         *device = &dev->common;
+ 
++        property_get("ro.product.name", value, NULL);
++        if ( 0 == strncmp(value, "da61mx", strlen("da61mx"))) {
++            use_lvds_13 = is_lvds_13_attached();
++            if (use_lvds_13 == 1)
++                property_get("hw.backlight.dev1", value, DEF_BACKLIGHT_DEV);
++            else if (use_lvds_13 == 0)
++                property_get("hw.backlight.dev0", value, DEF_BACKLIGHT_DEV);
++            else
++                property_get("hw.backlight.dev", value, DEF_BACKLIGHT_DEV);
++        } else
+         property_get("hw.backlight.dev", value, DEF_BACKLIGHT_DEV);
+         strcpy(path, DEF_BACKLIGHT_PATH);
+         strcat(path, value);
+-- 
+2.7.4
+

@@ -1,0 +1,31 @@
+From 5ed297fcc120874d103cb425a4a18a0d02af5a5b Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Wed, 10 May 2017 12:38:18 -0700
+Subject: [PATCH 08/12] Force i.MX USDHC to SDR50 speed
+
+- It seems we have crash issue on SDR104. Limit the USDHC speed
+  at SDR50.
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ drivers/mmc/core/sdio.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/mmc/core/sdio.c b/drivers/mmc/core/sdio.c
+index e1197ae..2ef5591 100644
+--- a/drivers/mmc/core/sdio.c
++++ b/drivers/mmc/core/sdio.c
+@@ -483,6 +483,10 @@ static int sdio_set_bus_speed_mode(struct mmc_card *card)
+ 	if (!mmc_host_uhs(card->host))
+ 		return 0;
+ 
++	//dev_err(mmc_dev(card->host), "*** sdio_set_bus_speed_mode *** caps = 0x%x\n", card->host->caps);
++	//dev_err(mmc_dev(card->host), "*** sdio_set_bus_speed_mode *** sd3_bus_mode = 0x%x\n", card->sw_caps.sd3_bus_mode);
++	card->sw_caps.sd3_bus_mode = SD_MODE_UHS_SDR50;
++
+ 	bus_speed = SDIO_SPEED_SDR12;
+ 	timing = MMC_TIMING_UHS_SDR12;
+ 	if ((card->host->caps & MMC_CAP_UHS_SDR104) &&
+-- 
+2.7.4
+

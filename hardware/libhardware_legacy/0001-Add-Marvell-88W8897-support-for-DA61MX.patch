@@ -1,0 +1,128 @@
+From d2e2f4ab8cba29760b40fec6c02cb2d85ad86dd8 Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Thu, 18 May 2017 12:58:40 -0700
+Subject: [PATCH] Add Marvell 88W8897 support for DA61MX
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ wifi/Android.mk   |  3 +++
+ wifi/wifi_unite.c | 30 ++++++++++++++++++++++++++----
+ 2 files changed, 29 insertions(+), 4 deletions(-)
+ mode change 100644 => 100755 wifi/Android.mk
+ mode change 100644 => 100755 wifi/wifi_unite.c
+
+diff --git a/wifi/Android.mk b/wifi/Android.mk
+old mode 100644
+new mode 100755
+index d00f760..a09ad4d
+--- a/wifi/Android.mk
++++ b/wifi/Android.mk
+@@ -64,6 +64,9 @@ ifeq ($(BOARD_WLAN_DEVICE),UNITE)
+ ifeq ($(TARGET_PRODUCT),sabresd_7d)
+   LOCAL_CFLAGS += -DSABRESD_7D
+ endif
++ifeq ($(TARGET_PRODUCT),da61mx)
++  LOCAL_CFLAGS += -DDA61MX
++endif
+   LOCAL_SRC_FILES += wifi/wifi_unite.c
+ else
+   LOCAL_SRC_FILES += wifi/wifi.c
+diff --git a/wifi/wifi_unite.c b/wifi/wifi_unite.c
+old mode 100644
+new mode 100755
+index 0bff63f..bd85d4d
+--- a/wifi/wifi_unite.c
++++ b/wifi/wifi_unite.c
+@@ -44,7 +44,8 @@ enum Vendor {
+     UNKNOWN = -1,
+     ATHEROS = 0x1,
+     REALTEK = 0x2,
+-    BCM     = 0x3
++    BCM     = 0x3,
++    MARVELL = 0x4
+ };
+ enum RealtekDeviceModel {
+     UNKNOWN_MODEL = -1,
+@@ -58,6 +59,9 @@ enum BroadcomDeviceModel {
+ enum AthoresDeviceModel {
+     ATHEROS_DEFAULT  = 0
+ };
++enum MarvellDeviceModel {
++    SD8897  = 0
++};
+ #ifndef bool
+ typedef enum { false = 0, true = 1 } bool;
+ #endif
+@@ -166,6 +170,8 @@ static const char DRIVER_SDIO_IF_MODULE_ARG[]   = WIFI_SDIO_IF_DRIVER_MODULE_ARG
+ 
+ static const char IFACE_DIR[]           = "/data/system/wpa_supplicant";
+ 
++static const char P2P_SUPP_PROP_NAME_MRVL[]      = "init.svc.p2p_supplicant";
++static const char P2P_SUPPLICANT_NAME_MRVL[]     = "p2p_supplicant";
+ static const char BCM_SUPP_PROP_NAME[]      = "init.svc.wpa_supplicant";
+ static const char BCM_SUPPLICANT_NAME[]     = "wpa_supplicant";
+ static const char FIRMWARE_LOADER[]     = WIFI_FIRMWARE_LOADER;
+@@ -557,7 +563,7 @@ int wifi_insmod_driver_atheros()
+         return -1;
+     return 0;
+ }
+-#endif 
++#endif
+ 
+ int wifi_load_driver()
+ {
+@@ -623,9 +629,15 @@ timeout:
+     wifi_unload_driver();
+     return -1;
+ #else
++#ifdef DA61MX
++    WifiVendor = MARVELL;
++    WifiModel = SD8897;
++    property_set(DRIVER_VENDOR_NAME, "marvell");
++#else
+     WifiVendor = BCM;
+     WifiModel = BCM4335_4339;
+     property_set(DRIVER_VENDOR_NAME, "broadcom");
++#endif
+     return 0;
+ #endif
+ }
+@@ -905,6 +917,11 @@ int wifi_start_supplicant(int p2p_supported)
+             strcpy(supplicant_name, BCM_SUPPLICANT_NAME);
+             strcpy(supplicant_prop_name, BCM_SUPP_PROP_NAME);
+         }
++        else if (WifiVendor == MARVELL)
++        {
++            strcpy(supplicant_name, P2P_SUPPLICANT_NAME_MRVL);
++            strcpy(supplicant_prop_name, P2P_SUPP_PROP_NAME_MRVL);
++        }
+ 
+         /* Ensure p2p config file is created */
+         if (ensure_config_file_exists(P2P_CONFIG_FILE) < 0) {
+@@ -1020,6 +1037,11 @@ int wifi_stop_supplicant(int p2p_supported)
+             strcpy(supplicant_name, BCM_SUPPLICANT_NAME);
+             strcpy(supplicant_prop_name, BCM_SUPP_PROP_NAME);
+         }
++        else if( WifiVendor == MARVELL)
++        {
++            strcpy(supplicant_name, P2P_SUPPLICANT_NAME_MRVL);
++            strcpy(supplicant_prop_name, P2P_SUPP_PROP_NAME_MRVL);
++        }
+     } else {
+         strcpy(supplicant_name, SUPPLICANT_NAME);
+         strcpy(supplicant_prop_name, SUPP_PROP_NAME);
+@@ -1205,9 +1227,9 @@ int wifi_wait_on_socket(char *buf, size_t buflen)
+     /*
+      * Events strings are in the format
+      *
+-     *     IFNAME=iface <N>CTRL-EVENT-XXX 
++     *     IFNAME=iface <N>CTRL-EVENT-XXX
+      *        or
+-     *     <N>CTRL-EVENT-XXX 
++     *     <N>CTRL-EVENT-XXX
+      *
+      * where N is the message level in numerical form (0=VERBOSE, 1=DEBUG,
+      * etc.) and XXX is the event name. The level information is not useful
+-- 
+2.7.4
+

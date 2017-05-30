@@ -1,0 +1,57 @@
+From 18f6c778009a0f404e6b2d433eb535418162b944 Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Mon, 29 May 2017 15:43:42 -0700
+Subject: [PATCH] backport ADB support for 3.14.52 kernel
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ rootdir/init.usb.configfs.rc | 5 ++---
+ rootdir/init.usb.rc          | 2 +-
+ 2 files changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/rootdir/init.usb.configfs.rc b/rootdir/init.usb.configfs.rc
+index 8b0da22..186384b 100644
+--- a/rootdir/init.usb.configfs.rc
++++ b/rootdir/init.usb.configfs.rc
+@@ -4,7 +4,6 @@ on property:sys.usb.config=none && property:sys.usb.configfs=1
+     write /config/usb_gadget/g1/bDeviceClass 0
+     write /config/usb_gadget/g1/bDeviceSubClass 0
+     write /config/usb_gadget/g1/bDeviceProtocol 0
+-    setprop sys.usb.ffs.ready 0
+     setprop sys.usb.state ${sys.usb.config}
+ 
+ on property:sys.usb.config=adb && property:sys.usb.configfs=1
+@@ -90,7 +89,7 @@ on property:sys.usb.config=audio_source && property:sys.usb.configfs=1
+     rm /config/usb_gadget/g1/configs/b.1/f1
+     rm /config/usb_gadget/g1/configs/b.1/f2
+     rm /config/usb_gadget/g1/configs/b.1/f3
+-    symlink /config/usb_gadget/g1/functions/audio_source.gs3 /config/usb_gadget/g1/configs/b.1/f1
++    symlink /config/usb_gadget/g1/functions/audio_source.gs2 /config/usb_gadget/g1/configs/b.1/f1
+     write /config/usb_gadget/g1/UDC ${sys.usb.controller}
+     setprop sys.usb.state ${sys.usb.config}
+ 
+@@ -102,7 +101,7 @@ on property:sys.usb.ffs.ready=1 && property:sys.usb.config=audio_source,adb && p
+     rm /config/usb_gadget/g1/configs/b.1/f1
+     rm /config/usb_gadget/g1/configs/b.1/f2
+     rm /config/usb_gadget/g1/configs/b.1/f3
+-    symlink /config/usb_gadget/g1/functions/audio_source.gs3 /config/usb_gadget/g1/configs/b.1/f1
++    symlink /config/usb_gadget/g1/functions/audio_source.gs2 /config/usb_gadget/g1/configs/b.1/f1
+     symlink /config/usb_gadget/g1/functions/ffs.adb /config/usb_gadget/g1/configs/b.1/f2
+     write /config/usb_gadget/g1/UDC ${sys.usb.controller}
+     setprop sys.usb.state ${sys.usb.config}
+diff --git a/rootdir/init.usb.rc b/rootdir/init.usb.rc
+index db1681f..a105afe 100644
+--- a/rootdir/init.usb.rc
++++ b/rootdir/init.usb.rc
+@@ -10,7 +10,7 @@ on post-fs-data
+     chmod 0660 /sys/class/android_usb/android0/f_rndis/ethaddr
+ 
+ on boot
+-    setprop sys.usb.configfs 1
++    setprop sys.usb.configfs 0
+ 
+ # Used to disable USB when switching states
+ on property:sys.usb.config=none && property:sys.usb.configfs=0
+-- 
+2.7.4
+

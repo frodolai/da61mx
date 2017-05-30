@@ -1,0 +1,24 @@
+From b6468fcbb0a0a566acd61d9536e78eda04adb551 Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Thu, 18 May 2017 12:33:16 -0700
+Subject: [PATCH 3/4] Enable stay awake by default
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ .../frameworks/base/packages/SettingsProvider/res/values/defaults.xml    | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/da61mx/overlay/frameworks/base/packages/SettingsProvider/res/values/defaults.xml b/da61mx/overlay/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
+index 27092d1..6c48dec 100644
+--- a/da61mx/overlay/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
++++ b/da61mx/overlay/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
+@@ -21,5 +21,6 @@
+     <bool name="def_user_setup_complete">true</bool>
+     <!-- Disable GPS Provider-->
+     <string name="def_location_providers_allowed" translatable="false"></string>
++    <!-- Default for Settings.Global.STAY_ON_WHILE_PLUGGED_IN -->
+     <bool name="def_stay_on_while_plugged_in">true</bool>
+ </resources>
+-- 
+2.7.4
+

@@ -1,0 +1,102 @@
+From 1f65d3da2addd165380e5322f069901feda01446 Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Thu, 18 May 2017 12:34:11 -0700
+Subject: [PATCH 4/4] Disable Bluetooth by default
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ da61mx/required_hardware.xml | 55 +++++++++++++++++++++++++++++++++++++++++---
+ imx6/da61mx.mk               |  2 --
+ 2 files changed, 52 insertions(+), 5 deletions(-)
+
+diff --git a/da61mx/required_hardware.xml b/da61mx/required_hardware.xml
+index 61f4257..c35a75e 100755
+--- a/da61mx/required_hardware.xml
++++ b/da61mx/required_hardware.xml
+@@ -1,5 +1,5 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<!-- Copyright (C) 2009 The Android Open Source Project
++<!-- Copyright (C) 2010 The Android Open Source Project
+ 
+      Licensed under the Apache License, Version 2.0 (the "License");
+      you may not use this file except in compliance with the License.
+@@ -14,8 +14,57 @@
+      limitations under the License.
+ -->
+ 
+-<!-- XXX: This file is a clone of :frameworks/native/data/etc/tablet_core_hardware.xml file,
+-           except the bluetooth is removed and android.software.live_wallpaper was added.
++<!-- These are the hardware components that all handheld devices
++     must include. Devices with optional hardware must also include extra
++     hardware files, per the comments below.
++
++     Handheld devices include phones, mobile Internet devices (MIDs),
++     Personal Media Players (PMPs), small tablets (7" or less), and similar
++     devices.
+ -->
+ <permissions>
++    <feature name="android.hardware.audio.output" />
++    <feature name="android.hardware.location" />
++    <feature name="android.hardware.location.network" />
++    <feature name="android.hardware.sensor.compass" />
++    <feature name="android.hardware.sensor.accelerometer" />
++    <feature name="android.hardware.touchscreen" />
++    <feature name="android.hardware.touchscreen.multitouch" />
++    <feature name="android.hardware.touchscreen.multitouch.distinct" />
++    <feature name="android.hardware.microphone" />
++    <feature name="android.hardware.screen.portrait" />
++    <feature name="android.hardware.screen.landscape" />
++
++    <!-- basic system services -->
++    <feature name="android.software.app_widgets" />
++    <feature name="android.software.voice_recognizers" />
++    <feature name="android.software.backup" />
++    <feature name="android.software.home_screen" />
++    <feature name="android.software.input_methods" />
++    <feature name="android.software.print" />
++
++    <!-- Feature to specify if the device supports adding device admins. -->
++    <feature name="android.software.device_admin" />
++
++    <!-- Feature to specify if the device support managed users. -->
++    <feature name="android.software.managed_users" />
++
++    <!-- devices with GPS must include android.hardware.location.gps.xml -->
++    <!-- devices with a rear-facing camera must include one of these as appropriate:
++         android.hardware.camera.xml or
++         android.hardware.camera.autofocus.xml or
++         android.hardware.camera.autofocus-flash.xml -->
++    <!-- devices with a front facing camera must include
++         android.hardware.camera.front.xml -->
++    <!-- devices with WiFi must also include android.hardware.wifi.xml -->
++    <!-- devices with an ambient light sensor must also include
++         android.hardware.sensor.light.xml -->
++    <!-- devices with a proximity sensor must also include
++         android.hardware.sensor.proximity.xml -->
++    <!-- devices with a barometer must also include
++         android.hardware.sensor.barometer.xml -->
++    <!-- devices with a gyroscope must also include
++         android.hardware.sensor.gyroscope.xml -->
++    <!-- GSM phones must also include android.hardware.telephony.gsm.xml -->
++    <!-- CDMA phones must also include android.hardware.telephony.cdma.xml -->
+ </permissions>
+diff --git a/imx6/da61mx.mk b/imx6/da61mx.mk
+index b06b243..31545a5 100644
+--- a/imx6/da61mx.mk
++++ b/imx6/da61mx.mk
+@@ -514,12 +514,10 @@ PRODUCT_COPY_FILES += \
+ 	frameworks/native/data/etc/android.software.print.xml:system/etc/permissions/android.software.print.xml \
+ 	frameworks/native/data/etc/android.software.device_admin.xml:system/etc/permissions/android.software.device_admin.xml \
+ 	frameworks/native/data/etc/android.software.managed_users.xml:system/etc/permissions/android.software.managed_users.xml \
+-	frameworks/native/data/etc/tablet_core_hardware.xml:system/etc/permissions/tablet_core_hardware.xml \
+ 	frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
+ 	frameworks/native/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml \
+ 	frameworks/native/data/etc/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml \
+ 	frameworks/native/data/etc/android.hardware.usb.accessory.xml:system/etc/permissions/android.hardware.usb.accessory.xml \
+-	frameworks/native/data/etc/android.hardware.bluetooth_le.xml:system/etc/permissions/android.hardware.bluetooth_le.xml \
+ 	frameworks/native/data/etc/android.hardware.ethernet.xml:system/etc/permissions/android.hardware.ethernet.xml \
+ 	device/fsl/da61mx/Powervalue.sh:system/bin/Powervalue.sh \
+ 	device/fsl/da61mx/required_hardware.xml:system/etc/permissions/required_hardware.xml
+-- 
+2.7.4
+

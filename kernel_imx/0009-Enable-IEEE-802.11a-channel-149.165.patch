@@ -1,0 +1,29 @@
+From abb36d1d3c5145766607f9df522fcbf3e2559d3f Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Wed, 10 May 2017 12:40:36 -0700
+Subject: [PATCH 09/12] Enable IEEE 802.11a, channel 149..165
+
+- 3.14.52 only enable IEEE 802.11a channel up to 144. Add channel
+  149..165 to support full 5GHz band.
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ net/wireless/reg.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/wireless/reg.c b/net/wireless/reg.c
+index 04d5305..97b17f5 100644
+--- a/net/wireless/reg.c
++++ b/net/wireless/reg.c
+@@ -198,7 +198,7 @@ static DECLARE_DELAYED_WORK(reg_timeout, reg_timeout_work);
+ 
+ /* We keep a static world regulatory domain in case of the absence of CRDA */
+ static const struct ieee80211_regdomain world_regdom = {
+-	.n_reg_rules = 6,
++	.n_reg_rules = 7,
+ 	.alpha2 =  "00",
+ 	.reg_rules = {
+ 		/* IEEE 802.11b/g, channels 1..11 */
+-- 
+2.7.4
+

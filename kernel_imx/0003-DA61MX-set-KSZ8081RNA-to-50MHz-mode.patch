@@ -1,0 +1,66 @@
+From 889f4e7e8994a0654f58ae541308385d6061b4a5 Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Wed, 10 May 2017 12:28:13 -0700
+Subject: [PATCH 03/12] DA61MX: set KSZ8081RNA to 50MHz mode
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ arch/arm/mach-imx/mach-imx6q.c | 25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-imx/mach-imx6q.c b/arch/arm/mach-imx/mach-imx6q.c
+index 405889c..32eaba7 100644
+--- a/arch/arm/mach-imx/mach-imx6q.c
++++ b/arch/arm/mach-imx/mach-imx6q.c
+@@ -54,6 +54,20 @@ static int flexcan_stby_gpio;
+ static int flexcan0_en;
+ static int flexcan1_en;
+ 
++/* For imx6q da61mx board: set KSZ8081RNA to 50MHz mode.*/
++static int ksz8081rna_phy_fixup(struct phy_device *phydev)
++{
++	if (IS_BUILTIN(CONFIG_PHYLIB)) {
++		int val;
++		/* min rx data delay */
++		val = phy_read(phydev, 0x1F);
++		val |= (1 << 7);
++		phy_write(phydev, 0x1F, val);
++	}
++
++	return 0;
++}
++
+ static void imx6q_fec_sleep_enable(int enabled)
+ {
+ 	struct regmap *gpr;
+@@ -280,6 +294,8 @@ static int ar8035_phy_fixup(struct phy_device *dev)
+ static void __init imx6q_enet_phy_init(void)
+ {
+ 	if (IS_BUILTIN(CONFIG_PHYLIB)) {
++		phy_register_fixup_for_uid(PHY_ID_KSZ8081, MICREL_PHY_ID_MASK,
++				ksz8081rna_phy_fixup);
+ 		phy_register_fixup_for_uid(PHY_ID_KSZ9021, MICREL_PHY_ID_MASK,
+ 				ksz9021rn_phy_fixup);
+ 		phy_register_fixup_for_uid(PHY_ID_KSZ9031, MICREL_PHY_ID_MASK,
+@@ -315,10 +331,17 @@ static void __init imx6q_1588_init(void)
+ 	 * (external OSC), and we need to clear the bit.
+ 	 */
+ 	gpr = syscon_regmap_lookup_by_compatible("fsl,imx6q-iomuxc-gpr");
+-	if (!IS_ERR(gpr))
++	if (!IS_ERR(gpr)) {
++		if (of_machine_is_compatible("bcmtwn,imx6q-da61mx")) {
++			regmap_update_bits(gpr, IOMUXC_GPR1,
++					IMX6Q_GPR1_ENET_CLK_SEL_MASK,
++					IMX6Q_GPR1_ENET_CLK_SEL_PAD);
++		}
++		else
+ 		regmap_update_bits(gpr, IOMUXC_GPR1,
+ 				IMX6Q_GPR1_ENET_CLK_SEL_MASK,
+ 				IMX6Q_GPR1_ENET_CLK_SEL_ANATOP);
++	}
+ 	else
+ 		pr_err("failed to find fsl,imx6q-iomux-gpr regmap\n");
+ 
+-- 
+2.7.4
+

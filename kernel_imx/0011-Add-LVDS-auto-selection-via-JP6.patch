@@ -1,0 +1,254 @@
+From 7de117551c98ff5f74938da462f87bfc03f38f9e Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Thu, 18 May 2017 11:36:49 -0700
+Subject: [PATCH 11/12] Add LVDS auto selection via JP6
+
+- JP6 open: high for 10"
+- JP6 short: low for 13.3"
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ arch/arm/boot/dts/imx6q-da61mx.dts | 81 ++++++++++++++------------------------
+ drivers/video/mxc/ldb.c            | 36 +++++++++++++++++
+ 2 files changed, 66 insertions(+), 51 deletions(-)
+
+diff --git a/arch/arm/boot/dts/imx6q-da61mx.dts b/arch/arm/boot/dts/imx6q-da61mx.dts
+index 3b0a3ab..a5c31a7 100644
+--- a/arch/arm/boot/dts/imx6q-da61mx.dts
++++ b/arch/arm/boot/dts/imx6q-da61mx.dts
+@@ -13,11 +13,6 @@
+ 
+ 	aliases {
+ 		mxcfb0 = &mxcfb1;
+-		/*
+-		mxcfb1 = &mxcfb2;
+-		mxcfb2 = &mxcfb3;
+-		mxcfb3 = &mxcfb4;
+-		*/
+ 	};
+ 
+ 	memory:	memory {
+@@ -62,7 +57,7 @@
+ 		codec-master;
+ 		mux-int-port = <2>;
+ 		mux-ext-port = <3>;
+-		/* asrc-controller = <&asrc>; */
++		asrc-controller = <&asrc>;
+ 
+ 		audio-routing =
+ 			"Headphone Jack", "HP_L",
+@@ -109,7 +104,6 @@
+ 		};
+ 	};
+ 
+-	/* Setting for 10" LVDS -START */
+ 	mxcfb1: fb@0 {
+ 		compatible = "fsl,mxc_sdc_fb";
+ 		disp_dev = "ldb";
+@@ -120,36 +114,23 @@
+ 		status = "okay";
+ 	};
+ 
+-	pwm-backlight {
++	/* backlight for 10" LVDS */
++	pwm-backlight0 {
+ 		compatible = "pwm-backlight";
+ 		pwms = <&pwm1 0 20000>;
+ 		brightness-levels = <0 10 20 30 40 50 60 70 80 90 100>;
+ 		default-brightness-level = <8>;
+ 		enable-gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
+ 	};
+-	/* Setting for 10" LVDS -END */
+-
+-	/* Setting for 13" LVDS -START */
+-	/*
+-	mxcfb1: fb@0 {
+-		compatible = "fsl,mxc_sdc_fb";
+-		disp_dev = "ldb";
+-		interface_pix_fmt = "RGB24";
+-		default_bpp = <32>;
+-		int_clk = <0>;
+-		late_init = <0>;
+-		status = "okay";
+-	};
+ 
+-	pwm-backlight {
++	/* backlight for 13" LVDS */
++	pwm-backlight1 {
+ 		compatible = "pwm-backlight";
+ 		pwms = <&pwm2 0 5000>;
+ 		brightness-levels = <0 10 20 30 40 50 60 70 80 90 100>;
+ 		default-brightness-level = <8>;
+ 		enable-gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+ 	};
+-	*/
+-	/* Setting for 13" LVDS -END */
+ 
+ 	v4l2_out {
+ 		compatible = "fsl,mxc_v4l2_output";
+@@ -429,12 +410,14 @@
+ 	status = "okay";
+ };
+ 
+-/* Setting for 10" LVDS - START */
+ &ldb {
+ 	status = "okay";
++	panel-auto-select;
++	/* JP6  : When it activated, mean 13" LVDS is attached. */
++	panel-sel-gpio = <&gpio1 7 GPIO_ACTIVE_LOW>;
+ 
+ 	lvds-channel@0 {
+-		crtc = "ipu2-di0";
++		crtc = "ipu1-di0";
+ 		fsl,data-mapping = "spwg";
+ 		fsl,data-width = <24>;
+ 		primary;
+@@ -455,28 +438,8 @@
+ 			};
+ 		};
+ 	};
+-};
+-
+-&dcic1 {
+-	dcic_id = <0>;
+-	dcic_mux = "dcic-lvds0";
+-	status = "okay";
+-};
+-
+-&pwm1 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&pinctrl_pwm1>;
+-	status = "okay";
+-};
+-/* Setting for 10" LVDS - END */
+-
+-/* Setting for 13" LVDS - START */
+-/*
+-&ldb {
+-	status = "okay";
+-	split-mode;
+ 
+-	lvds-channel@0 {
++	lvds-channel@1 {
+ 		crtc = "ipu2-di0";
+ 		fsl,data-mapping = "jeida";
+ 		fsl,data-width = <24>;
+@@ -484,8 +447,8 @@
+ 		status = "okay";
+ 
+ 		display-timings {
+-			native-mode = <&timing0>;
+-			timing0: G133HAN01 {
++			native-mode = <&timing1>;
++			timing1: G133HAN01 {
+ 				clock-frequency = <141200000>;
+ 				hactive = <1920>;
+ 				vactive = <1080>;
+@@ -512,13 +475,17 @@
+ 	status = "okay";
+ };
+ 
++&pwm1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_pwm1>;
++	status = "okay";
++};
++
+ &pwm2 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_pwm2>;
+ 	status = "okay";
+ };
+-*/
+-/* Setting for 13" LVDS - END */
+ 
+ &pcie {
+ 	reset-gpio = <&gpio7 12 GPIO_ACTIVE_LOW>;
+@@ -610,3 +577,15 @@
+ &sata {
+ 	status = "okay";
+ };
++
++&caam_sm  {
++	status = "okay";
++};
++
++&caam_snvs  {
++	status = "okay";
++};
++
++&crypto {
++	status = "okay";
++};
+diff --git a/drivers/video/mxc/ldb.c b/drivers/video/mxc/ldb.c
+index 71e17f8..0eb4d72 100644
+--- a/drivers/video/mxc/ldb.c
++++ b/drivers/video/mxc/ldb.c
+@@ -32,6 +32,7 @@
+ #include <video/of_videomode.h>
+ #include <video/videomode.h>
+ #include "mxc_dispdrv.h"
++#include <linux/of_gpio.h>
+ 
+ #define DRIVER_NAME	"ldb"
+ 
+@@ -112,6 +113,11 @@ struct ldb_data {
+ 	struct clk *div_sel_clk[2];
+ };
+ 
++/* Implement for panel auto selection. */
++static bool panel_auto_sel = false;
++static unsigned int panel_sel_gpio;
++static bool use_lvds_13 = false;
++
+ static const struct crtc_mux imx6q_lvds0_crtc_mux[] = {
+ 	{
+ 		.crtc = CRTC_IPU1_DI0,
+@@ -727,7 +733,24 @@ static int ldb_probe(struct platform_device *pdev)
+ 	if (!ext_ref && ldb_info->ext_bgref_cap)
+ 		ldb->ctrl |= LDB_BGREF_RMODE_INT;
+ 
++	panel_auto_sel = of_property_read_bool(np, "panel-auto-select");
++	if (panel_auto_sel) {
++		enum of_gpio_flags flags;
++
++		panel_sel_gpio = of_get_named_gpio_flags(np, "panel-sel-gpio", 0, &flags);
++		if (gpio_is_valid(panel_sel_gpio)) {
++			gpio_request(panel_sel_gpio, "panel_sel");
++			if (flags == OF_GPIO_ACTIVE_LOW)
++				use_lvds_13 = !gpio_get_value(panel_sel_gpio);
++			else
++				use_lvds_13 = gpio_get_value(panel_sel_gpio);
++
++		}
++	}
++
+ 	ldb->spl_mode = of_property_read_bool(np, "split-mode");
++	if (panel_auto_sel && use_lvds_13)
++		ldb->spl_mode = true;
+ 	if (ldb->spl_mode) {
+ 		if (ldb_info->split_cap) {
+ 			ldb->ctrl |= LDB_SPLIT_MODE_EN;
+@@ -775,6 +798,19 @@ static int ldb_probe(struct platform_device *pdev)
+ 			return -EINVAL;
+ 		}
+ 
++		if (panel_auto_sel && use_lvds_13) {
++			if (i == 0) {
++				dev_warn(dev, "Panel auto select is enabled and "
++					"13\" LVDS is attached, skip setting for 10\" LVDS.\n");
++				continue;
++			} else {
++				dev_warn(dev, "Panel auto select is enabled and "
++					"13\" LVDS is attached, force to be channel 0.\n");
++				i = 0;
++			}
++		}
++
++
+ 		if ((ldb->spl_mode || ldb->dual_mode) && i > 0) {
+ 			dev_warn(dev, "split mode or dual mode, ignoring "
+ 				"second output\n");
+-- 
+2.7.4
+
