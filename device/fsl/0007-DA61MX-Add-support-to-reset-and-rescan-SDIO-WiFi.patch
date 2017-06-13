@@ -1,0 +1,46 @@
+From d189c4edce4a65e7d0ab93b5255206d7eb4c89e2 Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Mon, 12 Jun 2017 16:39:52 -0700
+Subject: [PATCH 7/7] DA61MX: Add support to reset and rescan SDIO WiFi
+
+- Procedure to reset SDIO WiFi
+  1. Turn off WiFi switch in Settings
+
+  2. Turn off SDIO WiFi power
+    - echo 1 > /sys/class/gpio/gpio136/value
+
+  3. Turn on SDIO WiFi power
+    - echo 0 > /sys/class/gpio/gpio136/value
+
+  4. Force to rescan SDIO
+    - echo 1 > /sys/class/mmc_host/mmc0/rescan
+
+  5. Trun on WiFi switch in Settings
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ da61mx/init.rc | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/da61mx/init.rc b/da61mx/init.rc
+index 1d6a964..8a4fe30 100644
+--- a/da61mx/init.rc
++++ b/da61mx/init.rc
+@@ -74,6 +74,14 @@ on boot
+     setprop alsa.mixer.capture.headset Capture
+ 
+     # Prepare for wifi
++    chown root system /sys/class/gpio/export
++    chown root system /sys/class/gpio/unexport
++    write /sys/class/gpio/export 136
++    write /sys/class/gpio/gpio136/direction out
++    chown root system /sys/class/gpio/gpio136/value
++    chmod 220 /sys/class/gpio/gpio136/value
++    chown root system /sys/class/mmc_host/mmc0/rescan
++    chmod 220 /sys/class/mmc_host/mmc0/rescan
+     setprop wifi.interface wlan0
+     setprop wifi.ap.interface wlan0
+ 	#setprop wifi.supplicant p2p_supplicant
+-- 
+2.7.4
+

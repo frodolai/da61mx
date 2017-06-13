@@ -1,0 +1,48 @@
+From 386673950eafb14357e54d8a8c1cb20c74c324a0 Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Mon, 12 Jun 2017 16:49:53 -0700
+Subject: [PATCH 15/17] da61mx: remove regulator sd1_vmmc & sd1_vqmmc
+
+- Use GPIO136 to control in user space
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ arch/arm/boot/dts/imx6q-da61mx.dts | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/arch/arm/boot/dts/imx6q-da61mx.dts b/arch/arm/boot/dts/imx6q-da61mx.dts
+index d79ab1b..3fce16a 100644
+--- a/arch/arm/boot/dts/imx6q-da61mx.dts
++++ b/arch/arm/boot/dts/imx6q-da61mx.dts
+@@ -43,6 +43,28 @@
+ 			regulator-always-on;
+ 		};
+ 
++		/*
++		reg_sd1_vmmc: sd1_vmmc{
++			compatible = "regulator-fixed";
++			regulator-name = "P3V3_SDa_SWITCHED";
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++			gpio = <&gpio5 8 GPIO_ACTIVE_LOW>;
++			enable-active-low;
++			status="disabled";
++		};
++
++		reg_sd1_vqmmc: sd1_vqmmc {
++			compatible = "regulator-fixed";
++			reg = <1>;
++			regulator-name = "vqmmc";
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <1800000>;
++			regulator-always-on;
++			status="disabled";
++		};
++		*/
++
+ 	    bt_rfkill {
+             compatible = "fsl,mxc_bt_rfkill";
+             status ="okay";
+-- 
+2.7.4
+

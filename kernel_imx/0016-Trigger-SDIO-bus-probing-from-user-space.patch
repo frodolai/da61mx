@@ -1,0 +1,47 @@
+From b0a4b0c75ed58fcb5671f21f24243fa851082d4c Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Mon, 12 Jun 2017 16:54:53 -0700
+Subject: [PATCH 16/17] Trigger SDIO bus probing from user space
+
+ - Add a 'rescan' sysfs entry to the mmc controller
+ - https://patchwork.kernel.org/patch/2955321/
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ drivers/mmc/core/host.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/drivers/mmc/core/host.c b/drivers/mmc/core/host.c
+index e33d731..811b524 100644
+--- a/drivers/mmc/core/host.c
++++ b/drivers/mmc/core/host.c
+@@ -39,9 +39,26 @@ static void mmc_host_classdev_release(struct device *dev)
+ 	kfree(host);
+ }
+ 
++static ssize_t rescan_store(struct device *dev, struct device_attribute *attr,
++                            const char *buf, size_t count)
++{
++       struct mmc_host *host = cls_dev_to_mmc_host(dev);
++       mmc_detect_change(host, 100);
++       return count;
++}
++
++static DEVICE_ATTR_WO(rescan);
++
++static struct attribute *mmc_host_attrs[] = {
++       &dev_attr_rescan.attr,
++       NULL,
++};
++ATTRIBUTE_GROUPS(mmc_host);
++
+ static struct class mmc_host_class = {
+ 	.name		= "mmc_host",
+ 	.dev_release	= mmc_host_classdev_release,
++    .dev_groups     = mmc_host_groups,
+ };
+ 
+ int mmc_register_host_class(void)
+-- 
+2.7.4
+

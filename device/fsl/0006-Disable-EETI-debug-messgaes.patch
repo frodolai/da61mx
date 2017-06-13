@@ -1,0 +1,24 @@
+From 6b59f1d6fc21ad3c90306308be00ea7da79153a5 Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Mon, 12 Jun 2017 16:35:36 -0700
+Subject: [PATCH 6/7] Disable EETI debug messgaes
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ common/input/eGTouchA.ini | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/common/input/eGTouchA.ini b/common/input/eGTouchA.ini
+index 6596551..b81d5fb 100755
+--- a/common/input/eGTouchA.ini
++++ b/common/input/eGTouchA.ini
+@@ -1,5 +1,5 @@
+ [eGTouchA.ini]
+-DebugEnableBits			1
++DebugEnableBits   0
+ ShowDebugPosition		1
+ DeviceNums			1
+ BaudRate				0
+-- 
+2.7.4
+

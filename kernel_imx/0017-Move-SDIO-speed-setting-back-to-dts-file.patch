@@ -1,0 +1,62 @@
+From 4d9daa7fcc922afebef1de31b3c83859a3537f84 Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Mon, 12 Jun 2017 16:59:24 -0700
+Subject: [PATCH 17/17] Move SDIO speed setting back to dts file
+
+ - Remove hard coded in sdio.c
+ - Use max-frequency to set in dts file
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ arch/arm/boot/dts/imx6q-da61mx.dts | 14 +++++++++-----
+ drivers/mmc/core/sdio.c            |  4 ++--
+ 2 files changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm/boot/dts/imx6q-da61mx.dts b/arch/arm/boot/dts/imx6q-da61mx.dts
+index 3fce16a..0ca28bd 100644
+--- a/arch/arm/boot/dts/imx6q-da61mx.dts
++++ b/arch/arm/boot/dts/imx6q-da61mx.dts
+@@ -550,16 +550,20 @@
+ 	pinctrl-0 = <&pinctrl_wifi>;
+ 	pinctrl-1 = <&pinctrl_wifi_100mhz>;
+ 	pinctrl-2 = <&pinctrl_wifi_200mhz>;
++	max-frequency = <100000000>;
+ 	bus-width = <4>;
+ 	cap-sdio-irq;
+-	/* cap-power-off-card; */
+-	/* sd-uhs-sdr104; */
+-	/* sd-uhs-sdr50; */
+-	wifi-host;
+-	/* non-removable; */
+ 	keep-power-in-suspend;
+ 	enable-sdio-wakeup;
+ 	status = "okay";
++	/*
++	wifi-host;
++	cap-power-off-card;
++	sd-uhs-sdr104;
++	sd-uhs-sdr50;
++	fsl,cd-controller;
++	non-removable;
++	*/
+ };
+ 
+ /*
+diff --git a/drivers/mmc/core/sdio.c b/drivers/mmc/core/sdio.c
+index 2ef5591..8dfe628 100644
+--- a/drivers/mmc/core/sdio.c
++++ b/drivers/mmc/core/sdio.c
+@@ -483,8 +483,8 @@ static int sdio_set_bus_speed_mode(struct mmc_card *card)
+ 	if (!mmc_host_uhs(card->host))
+ 		return 0;
+ 
+-	//dev_err(mmc_dev(card->host), "*** sdio_set_bus_speed_mode *** caps = 0x%x\n", card->host->caps);
+-	//dev_err(mmc_dev(card->host), "*** sdio_set_bus_speed_mode *** sd3_bus_mode = 0x%x\n", card->sw_caps.sd3_bus_mode);
++	/* Force to run in SDR50 mode. */
++	/* TODO: Should be applied in DA61MX only. */
+ 	card->sw_caps.sd3_bus_mode = SD_MODE_UHS_SDR50;
+ 
+ 	bus_speed = SDIO_SPEED_SDR12;
+-- 
+2.7.4
+
