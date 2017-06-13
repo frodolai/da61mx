@@ -1,0 +1,34 @@
+From 2ffcac5b2cda007d85daaf8fbd7d0a292f5f7c82 Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Fri, 26 May 2017 17:28:46 -0700
+Subject: [PATCH 13/14] da61mx: correct USB charger LED GPIO#
+
+- CHG_CON_5VEN = DISP_DAT19 = GPIO(5, 13)
+- need to enalbe AUDIO LED before turning on/off charger LED
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ arch/arm/boot/dts/imx6q-da61mx.dts | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/boot/dts/imx6q-da61mx.dts b/arch/arm/boot/dts/imx6q-da61mx.dts
+index a5c31a7..7b2344f 100644
+--- a/arch/arm/boot/dts/imx6q-da61mx.dts
++++ b/arch/arm/boot/dts/imx6q-da61mx.dts
+@@ -84,10 +84,10 @@
+ 
+ 		usb-charger-led {
+ 			label = "USB-Charger-LED";
+-			gpios = <&gpio4 11 GPIO_ACTIVE_LOW>;
+-			linux,default-trigger = "charger";
++			gpios = <&gpio5 13 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "default-on";
+ 			retain-state-suspended;
+-			default-state = "off";
++			default-state = "on";
+ 		};
+ 	};
+ 
+-- 
+2.7.4
+

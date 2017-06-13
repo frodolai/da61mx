@@ -1,0 +1,35 @@
+From 1b5782e3557d87a2be749b0129524b365cd2921c Mon Sep 17 00:00:00 2001
+From: Frodo Lai <frodo_lai@bcmcom.com>
+Date: Fri, 26 May 2017 17:32:02 -0700
+Subject: [PATCH 14/14] da61mx: Add AUDIO LED support
+
+- CHG_CON_BLPW_EN = KEY_ROW2 = GPIO(4, 11)
+- Low active, set default state to ON
+
+Signed-off-by: Frodo Lai <frodo_lai@bcmcom.com>
+---
+ arch/arm/boot/dts/imx6q-da61mx.dts | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/arm/boot/dts/imx6q-da61mx.dts b/arch/arm/boot/dts/imx6q-da61mx.dts
+index 7b2344f..d79ab1b 100644
+--- a/arch/arm/boot/dts/imx6q-da61mx.dts
++++ b/arch/arm/boot/dts/imx6q-da61mx.dts
+@@ -82,6 +82,14 @@
+ 			default-state = "off";
+ 		};
+ 
++		audio-led {
++			label = "AUDIO-LED";
++			gpios = <&gpio4 11 GPIO_ACTIVE_LOW>;
++			linux,default-trigger = "default-on";
++			retain-state-suspended;
++			default-state = "on";
++		};
++
+ 		usb-charger-led {
+ 			label = "USB-Charger-LED";
+ 			gpios = <&gpio5 13 GPIO_ACTIVE_HIGH>;
+-- 
+2.7.4
+
